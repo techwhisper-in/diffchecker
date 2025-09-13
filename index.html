@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Diff Checker Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="checkdiff.js"></script>
+    <style>
+        :root {
+            --primary: #4361ee;
+            --primary-dark: #3a56d4;
+            --secondary: #7209b7;
+            --success: #06d6a0;
+            --danger: #ef476f;
+            --warning: #ffd166;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gray: #6c757d;
+            --gray-light: #ced4da;
+            --border-radius: 12px;
+            --shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: var(--dark);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+        }
+
+        .logo {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+        }
+
+        .subtitle {
+            color: var(--gray);
+            font-size: 1.2rem;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .app-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 992px) {
+            .app-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .panel {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .panel-header {
+            background: var(--primary);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .panel-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 6px;
+            padding: 8px 15px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: var(--transition);
+        }
+
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 0.8rem;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-secondary {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5e089c;
+        }
+
+        .btn-light {
+            background: var(--light);
+            color: var(--dark);
+        }
+
+        .btn-light:hover {
+            background: #e9ecef;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #e33562;
+        }
+
+        .panel-body {
+            padding: 20px;
+            height: 350px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 100%;
+            border: none;
+            outline: none;
+            resize: none;
+            font-family: 'Fira Code', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            padding: 10px;
+            border: 1px solid var(--gray-light);
+            border-radius: 8px;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .btn-lg {
+            padding: 12px 25px;
+            font-size: 1.1rem;
+        }
+
+        .results-container {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: var(--primary);
+            color: white;
+        }
+
+        .results-body {
+            padding: 20px;
+            min-height: 300px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .diff-container {
+            font-family: 'Fira Code', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .diff-added {
+            background-color: rgba(0, 255, 0, 0.15);
+            color: #2e7d32;
+            padding: 2px 0;
+            border-left: 3px solid #2e7d32;
+            display: block;
+            width: 100%;
+        }
+
+        .diff-removed {
+            background-color: rgba(255, 0, 0, 0.15);
+            color: #c62828;
+            padding: 2px 0;
+            text-decoration: line-through;
+            border-left: 3px solid #c62828;
+            display: block;
+            width: 100%;
+        }
+
+        .diff-unchanged {
+            padding: 2px 0;
+            display: block;
+            width: 100%;
+        }
+
+        .stats {
+            display: flex;
+            gap: 20px;
+            padding: 15px 20px;
+            background: var(--light);
+            border-top: 1px solid var(--gray-light);
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--gray);
+        }
+
+        .added-stat .stat-value {
+            color: #2e7d32;
+        }
+
+        .removed-stat .stat-value {
+            color: #c62828;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+
+        .instructions {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .instructions h2 {
+            margin-bottom: 15px;
+            color: var(--primary);
+        }
+
+        .instructions-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+        }
+
+        .instruction-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .instruction-icon {
+            background: var(--primary);
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        /* Syntax highlighting for code */
+        pre {
+            margin: 0;
+            font-family: 'Fira Code', monospace;
+        }
+
+        .change-navigation {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .current-diff {
+            box-shadow: 0 0 0 2px var(--warning);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <i class="fas fa-code-compare"></i>
+            </div>
+            <h1>Text Diff Checker Pro</h1>
+            <p class="subtitle">Compare text, code, or documents with highlighted differences and detailed change statistics</p>
+        </header>
+
+        <div class="instructions">
+            <h2>How to Use</h2>
+            <div class="instructions-list">
+                <div class="instruction-item">
+                    <div class="instruction-icon">
+                        <i class="fas fa-1"></i>
+                    </div>
+                    <p>Enter your original text in the left panel and the modified text in the right panel</p>
+                </div>
+                <div class="instruction-item">
+                    <div class="instruction-icon">
+                        <i class="fas fa-2"></i>
+                    </div>
+                    <p>Click the "Compare Texts" button to analyze the differences</p>
+                </div>
+                <div class="instruction-item">
+                    <div class="instruction-icon">
+                        <i class="fas fa-3"></i>
+                    </div>
+                    <p>Review the highlighted changes and use the navigation buttons to jump between differences</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="app-container">
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">Original Text</div>
+                    <div class="panel-actions">
+                        <button class="btn btn-light btn-sm" id="clear-original">
+                            <i class="fas fa-trash"></i> Clear
+                        </button>
+                        <button class="btn btn-light btn-sm" id="example-original">
+                            <i class="fas fa-lightbulb"></i> Example
+                        </button>
+                    </div>
+                </div>
+                <div class="panel-body">
+                    <textarea id="text1" placeholder="Enter original text or code here...">function greet(name) {
+  return "Hello, " + name + "!";
+}
+
+console.log(greet("World"));
+</textarea>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">Modified Text</div>
+                    <div class="panel-actions">
+                        <button class="btn btn-light btn-sm" id="clear-modified">
+                            <i class="fas fa-trash"></i> Clear
+                        </button>
+                        <button class="btn btn-light btn-sm" id="example-modified">
+                            <i class="fas fa-lightbulb"></i> Example
+                        </button>
+                    </div>
+                </div>
+                <div class="panel-body">
+                    <textarea id="text2" placeholder="Enter modified text or code here...">function greeting(name) {
+  return `Hello, ${name}! Welcome!`;
+}
+
+console.log(greeting("World"));
+</textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn btn-primary btn-lg" id="compare-btn">
+                <i class="fas fa-code-compare"></i> Compare Texts
+            </button>
+            <button class="btn btn-secondary btn-lg" id="clear-all-btn">
+                <i class="fas fa-broom"></i> Clear All
+            </button>
+        </div>
+
+        <div class="results-container">
+            <div class="results-header">
+                <div class="results-title">Comparison Results</div>
+                <div class="change-navigation">
+                    <button class="btn btn-light btn-sm" id="prev-diff" disabled>
+                        <i class="fas fa-arrow-up"></i> Previous Change
+                    </button>
+                    <button class="btn btn-light btn-sm" id="next-diff" disabled>
+                        Next Change <i class="fas fa-arrow-down"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="results-body">
+                <div class="diff-container" id="diff-output"></div>
+            </div>
+            <div class="stats">
+                <div class="stat-item added-stat">
+                    <div class="stat-value" id="added-count">0</div>
+                    <div class="stat-label">Additions</div>
+                </div>
+                <div class="stat-item removed-stat">
+                    <div class="stat-value" id="removed-count">0</div>
+                    <div class="stat-label">Deletions</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="changes-count">0</div>
+                    <div class="stat-label">Total Changes</div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Text Diff Checker Pro &copy; 2025 | A powerful tool for comparing text and code differences</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Elements
+            const text1El = document.getElementById('text1');
+            const text2El = document.getElementById('text2');
+            const compareBtn = document.getElementById('compare-btn');
+            const clearAllBtn = document.getElementById('clear-all-btn');
+            const clearOriginalBtn = document.getElementById('clear-original');
+            const clearModifiedBtn = document.getElementById('clear-modified');
+            const exampleOriginalBtn = document.getElementById('example-original');
+            const exampleModifiedBtn = document.getElementById('example-modified');
+            const diffOutputEl = document.getElementById('diff-output');
+            const addedCountEl = document.getElementById('added-count');
+            const removedCountEl = document.getElementById('removed-count');
+            const changesCountEl = document.getElementById('changes-count');
+            const prevDiffBtn = document.getElementById('prev-diff');
+            const nextDiffBtn = document.getElementById('next-diff');
+
+            // DiffMatchPatch instance
+            const dmp = new diff_match_patch();
+
+            // Example texts
+            const exampleText1 = `function greet(name) {
+  return "Hello, " + name + "!";
+}
+
+console.log(greet("World"));
+`;
+
+            const exampleText2 = `function greeting(name) {
+  return \`Hello, \${name}! Welcome!\`;
+}
+
+console.log(greeting("World"));
+`;
+
+            // Initialize with examples
+            text1El.value = exampleText1;
+            text2El.value = exampleText2;
+
+            // Compare texts function
+            function compareTexts() {
+                const text1 = text1El.value;
+                const text2 = text2El.value;
+                
+                if (!text1 && !text2) {
+                    alert('Please enter text in at least one field.');
+                    return;
+                }
+
+                // Compute differences
+                const diff = dmp.diff_main(text1, text2);
+                dmp.diff_cleanupSemantic(diff);
+
+                // Format and display differences
+                let html = '';
+                let addedCount = 0;
+                let removedCount = 0;
+                let changesCount = 0;
+                
+                diff.forEach((part) => {
+                    // Properly escape HTML and handle line breaks
+                    const value = part[1]
+                        .replace(/&/g, '&amp;')
+                        .replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;')
+                        .replace(/\n/g, '<br>')
+                        .replace(/\t/g, '&nbsp;&nbsp;&nbsp;&nbsp;')
+                        .replace(/ /g, '&nbsp;');
+                    
+                    if (part[0] === 1) {
+                        html += `<div class="diff-added">${value}</div>`;
+                        addedCount++;
+                        changesCount++;
+                    } else if (part[0] === -1) {
+                        html += `<div class="diff-removed">${value}</div>`;
+                        removedCount++;
+                        changesCount++;
+                    } else {
+                        html += `<div class="diff-unchanged">${value}</div>`;
+                    }
+                });
+
+                diffOutputEl.innerHTML = html;
+                
+                // Update statistics
+                addedCountEl.textContent = addedCount;
+                removedCountEl.textContent = removedCount;
+                changesCountEl.textContent = changesCount;
+                
+                // Enable navigation buttons if there are changes
+                prevDiffBtn.disabled = changesCount === 0;
+                nextDiffBtn.disabled = changesCount === 0;
+                
+                // Scroll to first change
+                if (changesCount > 0) {
+                    const firstChange = diffOutputEl.querySelector('.diff-added, .diff-removed');
+                    if (firstChange) {
+                        firstChange.classList.add('current-diff');
+                        firstChange.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }
+            }
+
+            // Clear all function
+            function clearAll() {
+                text1El.value = '';
+                text2El.value = '';
+                diffOutputEl.innerHTML = '';
+                addedCountEl.textContent = '0';
+                removedCountEl.textContent = '0';
+                changesCountEl.textContent = '0';
+                prevDiffBtn.disabled = true;
+                nextDiffBtn.disabled = true;
+            }
+
+            // Set example texts
+            function setExampleOriginal() {
+                text1El.value = exampleText1;
+            }
+
+            function setExampleModified() {
+                text2El.value = exampleText2;
+            }
+
+            // Navigate between differences
+            function navigateDiff(direction) {
+                const changes = diffOutputEl.querySelectorAll('.diff-added, .diff-removed');
+                if (changes.length === 0) return;
+                
+                let currentIndex = -1;
+                
+                // Find current index
+                const current = diffOutputEl.querySelector('.current-diff');
+                if (current) {
+                    current.classList.remove('current-diff');
+                    currentIndex = Array.from(changes).indexOf(current);
+                }
+                
+                // Calculate new index
+                let newIndex;
+                if (direction === 'next') {
+                    newIndex = currentIndex < changes.length - 1 ? currentIndex + 1 : 0;
+                } else {
+                    newIndex = currentIndex > 0 ? currentIndex - 1 : changes.length - 1;
+                }
+                
+                // Set new current and scroll to it
+                changes[newIndex].classList.add('current-diff');
+                changes[newIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+
+            // Event listeners
+            compareBtn.addEventListener('click', compareTexts);
+            clearAllBtn.addEventListener('click', clearAll);
+            clearOriginalBtn.addEventListener('click', () => { text1El.value = ''; });
+            clearModifiedBtn.addEventListener('click', () => { text2El.value = ''; });
+            exampleOriginalBtn.addEventListener('click', setExampleOriginal);
+            exampleModifiedBtn.addEventListener('click', setExampleModified);
+            nextDiffBtn.addEventListener('click', () => navigateDiff('next'));
+            prevDiffBtn.addEventListener('click', () => navigateDiff('prev'));
+
+            // Initial comparison
+            compareTexts();
+        });
+    </script>
+</body>
+</html>
